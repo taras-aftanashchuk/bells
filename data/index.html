@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bells</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      * {
+        -ms-touch-action: manipulation;
+        touch-action: manipulation;
+      }
+      body {
+        margin:    0 auto;
+        max-width: 900px;
+      }
+      button,
+      html {
+        -webkit-touch-callout: none;
+          -webkit-user-select: none; 
+           -khtml-user-select: none;
+             -moz-user-select: none;
+              -ms-user-select: none;
+                  user-select: none;
+      } 
+      form {margin-bottom: 20px;}
+      .radio {display: flex;padding: 8px; }
+      button { margin: 2px; font-size: 2em; padding: 0.5em; border-radius: 0.5em; background-color: #4CAF50; color: white; border: none; cursor: pointer; width: 23% }
+    </style>
+  </head>
+        
+  <body>
+    <form id="melodyForm"></form>
+
+    <div>
+      <button id="1"> 1 </button>
+      <button id="2"> 2 </button>
+      <button id="3"> 3 </button>
+      <button id="4"> 4 </button>
+    </div>
+
+    <div id="message" style="margin-top: 1em; color: red;"></div>
+  </body>
+
+ <script>
+  const form = document.getElementById('melodyForm');
+  const messageDiv = document.getElementById('message');
+
+  async function sendRequest(method, url, file = null) {
+    console.log("sendRequest:", method, url);
+
+    let options = { method };
+
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      options.body = formData;
+    }
+
+    try {
+      const response = await fetch(url, options);
+      const result = await response.text();
+      messageDiv.style.color = "green";
+      messageDiv.textContent = `${method}: ${url} Success: ${result}`;
+    } catch (err) {
+      messageDiv.style.color = "red";
+      messageDiv.textContent = `${method}: ${url} Error: ${err}`;
+    }
+  }
+  
+  const isTouchDevice = 'ontouchstart' in window;
+
+  document.querySelectorAll('button').forEach(button => {
+    const id = `/output/${button.id}`;
+
+    // Using 'mousedown' and 'mouseup' events for desktop + 'touchstart' and 'touchend' for mobile
+    if( isTouchDevice) {
+      button.addEventListener('touchstart', () => sendRequest('POST', id));
+      button.addEventListener('touchend', () => sendRequest('DELETE', id));
+    } else {
+      button.addEventListener('mousedown', () => sendRequest('POST', id));
+      button.addEventListener('mouseup', () => sendRequest('DELETE', id));
+    }
+  });
+
+  form.addEventListener('change', function() {
+    // Get selected radio button
+    const selectedRadio = form.querySelector('input[name="radgroup"]:checked');
+
+    // If a radio button is selected, send the POST request
+    if (selectedRadio) {
+      const id = selectedRadio.value;
+      sendRequest('POST', `/melody/${id}`);
+    }
+  });
+
+   const melodies = [
+    { id: 0, name: "None" },
+    { id: 1, name: "M1" },
+    { id: 2, name: "M2" },
+    { id: 3, name: "M3" },
+    { id: 4, name: "M4" },
+    { id: 5, name: "M5" },
+    { id: 6, name: "M6" },
+    { id: 7, name: "M7" },
+    { id: 8, name: "M8" },
+    { id: 9, name: "M9" },
+    { id: 10, name: "M10" },
+  ];
+
+  melodies.forEach(melody => {
+    const label = document.createElement("label");
+    label.classList.add("radio");
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "radgroup";
+    radio.value = melody.id;
+
+    const text = document.createTextNode(` ${melody.name}`);
+    label.appendChild(radio);
+    label.appendChild(text);
+
+    if (melody.id !== 0) {
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.style.marginLeft = "10px";
+      fileInput.style.marginRight = "10px";
+      fileInput.style.float = "right";
+      fileInput.addEventListener("change", () => {
+        sendRequest("POST", `/file/${melody.id}`, fileInput.files[0]);
+        fileInput.value = "";  // Clear the input after upload
+      });
+
+      const downloadLink = document.createElement("a");
+      downloadLink.href = `/file/${melody.id}`;
+      downloadLink.target="_blank"
+      downloadLink.textContent = "Download";
+      downloadLink.style.marginLeft = "50px";
+
+      label.appendChild(downloadLink);
+      label.appendChild(fileInput);
+    } else {
+      const checkboxLabel = document.createElement("label");
+      checkboxLabel.style.margin = "15px";
+      checkboxLabel.style.display = "inline-block";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.style.marginRight = "5px";
+      checkbox.style.float = "right";
+      checkbox.addEventListener("change", (event) => {
+        form.querySelectorAll('input[type="radio"]').forEach(radio => {
+          radio.disabled = event.target.checked;  // Disable radios if checked
+        });
+      });
+
+      // Add text next to checkbox
+      checkboxLabel.appendChild(checkbox);
+      checkboxLabel.appendChild(document.createTextNode("Block Melodies"));
+      form.appendChild(checkboxLabel);
+    }
+    
+    form.appendChild(label);
+  });
+</script>
+</html>

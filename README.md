@@ -17,3 +17,22 @@ pio run
 To simulate this project, install [Wokwi for VS Code](https://marketplace.visualstudio.com/items?itemName=wokwi.wokwi-vscode). Open the project directory in Visual Studio Code, press **F1** and select "Wokwi: Start Simulator".
 
 Once the simulation is running, open http://localhost:8180 in your web browser to interact with the simulated HTTP server.
+
+
+## Debugging
+
+Logging
+
+```pio device monitor -p /dev/cu.usbserial-0001 -b 115200```
+
+
+## Melody file 
+
+For now supports up to 10 melodies
+
+Example:
+
+```
+-1,8           // Set time duration in seconds for melody
+1,0,0,0,500    // rele1, rele2, rele3, rele4, duration
+0,0,0,0,500    // Turn off all relays and wait 500 ms
